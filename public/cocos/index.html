@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="referrer" content="no-referrer">
+  <title>合成大西瓜 · 孔总实验室</title>
+  <link rel="stylesheet" href="style-mobile.css">
+  <style>html,body,#canvasDiv{width:100%;height:100%;margin:0;overflow:hidden;touch-action:none;background:#f9e7b1}#loadingText{position:fixed;inset:45% 0 auto;text-align:center;color:#72521e;font:16px sans-serif;z-index:9}</style>
+</head>
+<body>
+  <div id="canvasDiv"><canvas id="GameCanvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas><div id="block-Box" style="display:none"></div></div>
+  <div id="splash"></div><div id="loadingText" role="status">正在载入原版游戏…</div>
+  <script>var loadData={completedCount:0,totalCount:0};var timer=null;var preloader;var adCompleteFlag=true,resCompleteFlag=true,adEndComplete=true,resEndComplete=true;</script>
+  <script src="src/settings.js"></script>
+  <script src="kong-bridge.js"></script>
+  <script src="main.js"></script>
+  <script>
+    if(window.parent===window || !new URLSearchParams(location.hash.slice(1)).get('channel')) location.replace('/game');
+    else { var engine=document.createElement('script');engine.src='cocos2d-js-min.js';engine.onload=function(){window.boot()};engine.onerror=function(){document.getElementById('loadingText').textContent='游戏引擎加载失败，请返回并重新开始。'};document.body.appendChild(engine); }
+  </script>
+</body></html>
