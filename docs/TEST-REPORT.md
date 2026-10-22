@@ -17,14 +17,29 @@
 
 截图位于交付 outputs 目录：guagua-home-360.png、guagua-game-360.png、guagua-game-393.png、guagua-game-430.png、guagua-ranking-360.png、guagua-ranking-430.png。截图有些来自控制按钮移动前的构建，最终生产截图以正式验收补充为准。
 
-## 生产状态（部署中）
+## 生产验收（2026-10-22 已完成）
 
-- Vercel Hobby 新项目 kong-lab 已创建，连接新仓库。
-- Neon Free、Singapore、无需信用卡，数据库 kong-lab-db 已创建。
-- 数据库已连接 Vercel，DATABASE_URL 由官方集成配置为 Secret。001、002 两份迁移已在真实 Neon 成功执行；只读检查 games=0、players=0、rules=0、classified_view=true，未写入模拟成绩。
-- 872670b 首次自动部署成功；a7a538e 第二次推送也自动部署成功，正式 /credits 已验证出现“新站游戏名为《瓜瓜物语》”的可见更新。
-- 正式页面地址 https://kong-lab.vercel.app 可返回 200。三个应用服务端变量需要用户亲自保存；后端真实分数写入与管理员生产验收待此步骤完成后继续。
-- 在生产 API、Neon 实际写入、密码登录和二次推送部署验证完成前，不声称生产验收通过。
+正式网站：https://kong-lab.vercel.app 。后台：https://kong-lab.vercel.app/admin 。
+
+| 项目 | 结果与证据 |
+| --- | --- |
+| Vercel / GitHub | Hobby 项目 kong-lab 连接正确仓库；872670b、a7a538e 自动部署成功，第二次 /credits 文字更新已在正式域名验证。配置变量后重新部署 HDjhHEPeY77JH1FBjrCfDXUckHye 状态 Ready / Production / Current。 |
+| Neon | Free，新加坡 kong-lab-db，无需信用卡。001、002 迁移真实执行成功，DATABASE_URL 由官方集成注入。 |
+| 秘密与后台登录 | ADMIN_PASSWORD、SESSION_SECRET、IP_HMAC_SECRET 由用户输入保存为 Production Secret。用户已用自己设置的原密码成功登录，不曾重设或读取其密码值。未登录管理员数据请求返回 401。 |
+| 即刻记录 | 从正式首页点开始，立即在 Neon 创建 IP-001 的 score=0、finished=false 会话。 |
+| 真实分数 | 原版 Canvas 实际点击投放、合成得到 1 分；Neon、左下同步状态与历史榜显示同一分数；最终今日榜接口返回 200 / total=0，已排除验收记录。离开游戏后仍保留。未注入模拟分数。 |
+| 手机全屏 | 正式域名在 360×800、393×873、430×932 实测 innerWidth/Height 与 scrollWidth/Height 一致，真实投放可操作。桌面居中手机比例，新增按钮位于下部空白区域，保留原角色按钮。 |
+| 游戏内榜单 | 打开覆盖式排行榜不跳页；关闭后 iframe channel 保持不变，回到同一局。原桥接暂停逻辑的单元测试也通过。 |
+| 匿名编号 | 同一浏览器 11 局均为 IP-001；公共榜只显示编号、分数、排名和时间。相同 IP 不合并浏览器、超过 999 不截断的真实 PostgreSQL 自动化测试通过。 |
+| 设备免统计 | 开启设备未来规则后，从正式入口连续开始并实际点击 10 局游戏。Neon 10 局 excluded=true，正式概览仍为原有 1 局、1 玩家、最高 1 分。 |
+| 当前网络 / 追溯 | 新建网络规则并追溯后，原 1 分正式局从公共榜移除、概览归零；停用后恢复原分数和人数，未删除记录。临时网络规则随后删除。 |
+| 从记录排除 / 恢复 | 从真实测试行排除玩家，追溯覆盖 11 局；停用后概览恢复 11 局、1 玩家、最高 1 分，再启用后归零。 |
+| 手动 IP | 无效字符串被服务器拒绝。手动添加临时 IPv4 规则成功，界面只展示备注 / 状态 / 匹配局数，未展示 IP 哈希。该临时规则已删除。 |
+| 三种记录筛选 | 正式游戏 0 条，测试 / 全部游戏各 11 条；默认正式游戏。 |
+| 最终数据 | Neon 只读查询：games=11、test_games=11、official_games=0、preserved_best=1、browsers=1。只保留一个启用并追溯的玩家规则，没有启用的网络规则。 |
+| 原项目 | 原 xiaomin 本地工作区无变化，远程 master 仍为 390ea9a；旧站 HTTP 200 且原 GameCanvas / 引擎入口仍在。 |
+
+验收截图在交付 outputs 中以 production- 开头；不含 IP、哈希、密钥的最终数据库摘要为 production-acceptance.json。管理员说明附正式界面截图。
 
 ## 边界
 

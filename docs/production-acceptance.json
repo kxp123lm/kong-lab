@@ -1,0 +1,37 @@
+{
+  "verifiedAt": "2026-10-22T01:01:11.447Z",
+  "origin": "https://kong-lab.vercel.app",
+  "stats": {
+    "games": 11,
+    "test_games": 11,
+    "official_games": 0,
+    "preserved_best": 1,
+    "browsers": 1
+  },
+  "rules": [
+    {
+      "kind": "player",
+      "enabled": true,
+      "retroactive": true,
+      "rules": 1
+    }
+  ],
+  "realGameScoreVerified": 1,
+  "phoneViewports": [
+    {
+      "width": 360,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "width": 393,
+      "height": 873,
+      "overflow": false
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "overflow": false
+    }
+  ]
+}
