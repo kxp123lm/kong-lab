@@ -3,7 +3,7 @@
 《瓜瓜物语》为主体，KONG LAB 作品页为辅助。保留原 Cocos 游戏、人物素材和合成物理，接入真实联网成绩、匿名排行榜及可撤销的测试设备 / IP 排除名单。
 
 **源码仓库：** https://github.com/kxp123lm/kong-lab  
-**生产地址：** 尚未部署。优先在 Vercel 配置 `kong-lab.vercel.app`；可用性需在创建项目时确认。
+**生产地址：** https://kong-lab.vercel.app （已部署页面；数据库迁移与生产验收进行中，详见测试报告）。
 
 原仓库 `kxp123lm/xiaomin` 与原站 `xiaomin.vercel.app` 从未被本项目修改。
 
@@ -46,7 +46,7 @@ pnpm verify:assets
 pnpm build
 ```
 
-33 项自动化测试通过。数据库集成测试使用 **真实 PostgreSQL 引擎 PGlite** 执行同一份迁移与 SQL，不是模拟成绩或内存对象替身。本地浏览器还验证了真实游戏得分 → API → PostgreSQL → 排行榜的完整链路。Neon/Vercel 生产验收仍需真实账号配置。
+34 项自动化测试通过。数据库集成测试使用 **真实 PostgreSQL 引擎 PGlite** 执行同一份迁移与 SQL，不是模拟成绩或内存对象替身。本地浏览器还验证了真实游戏得分 → API → PostgreSQL → 排行榜的完整链路。Neon/Vercel 生产验收仍需真实账号配置。
 
 详见 [管理员使用说明](docs/管理员使用说明.md)、[测试报告](docs/TEST-REPORT.md)、[中文部署说明](docs/DEPLOY.md) 和 [原游戏改造记录](docs/UPSTREAM.md)。
 
