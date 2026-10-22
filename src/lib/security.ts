@@ -1,4 +1,5 @@
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
+import { isIP } from 'node:net';
 
 type Claims = { kind: string; player?: string; sid?: string; exp?: number };
 function secret(name: string) {
@@ -24,7 +25,19 @@ export function readToken(token: string | undefined, kind: string, now = Date.no
     return value.kind === kind && Number.isSafeInteger(value.exp) && value.exp > now / 1000 ? value : null;
   } catch { return null; }
 }
-export function hashIP(ip: string) { return createHmac('sha256', secret('IP_HMAC_SECRET')).update(ip).digest('hex'); }
+export function normalizeIP(input:string){
+  const value=input.trim();const version=isIP(value);
+  if(!version)throw new Error('IP 地址格式无效');
+  if(version===4)return value;
+  const canonical=new URL(`http://[${value}]/`).hostname.slice(1,-1).toLowerCase();
+  const mapped=/^::ffff:([\da-f]{1,4}):([\da-f]{1,4})$/.exec(canonical);
+  if(mapped){const a=parseInt(mapped[1],16),b=parseInt(mapped[2],16);return `${a>>8}.${a&255}.${b>>8}.${b&255}`;}
+  return canonical;
+}
+export function hashIP(ip: string) {
+  const canonical=isIP(ip.trim()) ? normalizeIP(ip) : ip;
+  return createHmac('sha256', secret('IP_HMAC_SECRET')).update(canonical).digest('hex');
+}
 export function passwordMatches(value: string) {
   const configured = process.env.ADMIN_PASSWORD;
   if (!configured || configured.length < 12) throw new Error('SECURITY_UNCONFIGURED');

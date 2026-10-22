@@ -57,5 +57,6 @@ export function isTestDevice(request: Request, player: string) {
 export function metadata(request: Request) {
   const deployed = process.env.VERCEL === '1';
   const geo = deployed ? geolocation(request) : {};
-  return {country:geo.country?.slice(0,8) || null, region:geo.countryRegion?.slice(0,40) || null, ipHash:hashIP(deployed ? ipAddress(request) || 'unknown' : 'local-development')};
+  const ip=deployed?ipAddress(request):undefined;
+  return {country:geo.country?.slice(0,8) || null, region:geo.countryRegion?.slice(0,40) || null, ipHash:hashIP(ip || 'unknown'),ipAvailable:!!ip};
 }

@@ -3,5 +3,5 @@
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "regions": ["hnd1"]
+  "regions": ["sin1"]
 }

@@ -1,6 +1,6 @@
 # KONG LAB · 孔总实验室
 
-一个独立的个人作品站：保留原 Cocos 合成游戏，增加真实联网成绩、玩家排行榜和管理员统计。
+《瓜瓜物语》为主体，KONG LAB 作品页为辅助。保留原 Cocos 游戏、人物素材和合成物理，接入真实联网成绩、匿名排行榜及可撤销的测试设备 / IP 排除名单。
 
 **源码仓库：** https://github.com/kxp123lm/kong-lab  
 **生产地址：** 尚未部署。优先在 Vercel 配置 `kong-lab.vercel.app`；可用性需在创建项目时确认。
@@ -28,12 +28,12 @@ pnpm dev
 
 ## 已实现
 
-- 响应式中文作品站，集中作品配置：`src/data/projects.ts`。
-- `/game`：真实 Cocos 构建资源；可选昵称；服务端开局立即保存 0 分；真实 `PlayerInfo.score` 事件桥接。
+- `/` 手机水果开始页，`/lab` 响应式中文作品站，集中作品配置：`src/data/projects.ts`。
+- `/game`：真实 Cocos 构建资源；无昵称输入、自动开局、IP-001 等递增匿名编号；服务端开局立即保存 0 分；真实 `PlayerInfo.score` 事件桥接。
 - 约四秒节流同步、暂停/隐藏/离开补传、keepalive 与 beacon、24 小时待重试日志。每局独立保存待上传值及服务端确认水位，避免多标签覆盖。
-- `/leaderboard`：历史、今日、本周 TOP 100；每匿名浏览器最高有效分；未结束局可入榜；我的最高分与排名。
+- 游戏内覆盖式排行榜（暂停 / 返回原局），兼容 `/leaderboard`：历史、今日、本周 TOP 100；每匿名浏览器最高有效分；未结束局可入榜；我的最高分与排名。
 - `/admin`：密码验证、HttpOnly 登录、统计概览、最近记录、日期/地区/分数筛选及分页。
-- 服务端签名的站长设备免统计、当前浏览器历史排除与测试记录清理；测试不进入公共排行或普通玩家档案。
+- 数据库设备 / 网络排除规则，支持启停、删除、追溯、恢复、从记录添加、正式 / 测试 / 全部筛选；测试不进入公共排行或普通玩家档案。
 - Neon HTTP 驱动、参数化 SQL、唯一键与索引、数据库限流、同源验证、玩家所有权校验、基本刷分异常检测。
 - Vercel 官方地理信息接口；IP HMAC-SHA256，应用数据库不保存明文 IP；隐私与开源致谢页面。
 
@@ -46,9 +46,9 @@ pnpm verify:assets
 pnpm build
 ```
 
-26 项自动化测试通过。数据库集成测试使用 **真实 PostgreSQL 引擎 PGlite** 执行同一份迁移与 SQL，不是模拟成绩或内存对象替身。本地浏览器还验证了真实游戏得分 → API → PostgreSQL → 排行榜的完整链路。Neon/Vercel 生产验收仍需真实账号配置。
+33 项自动化测试通过。数据库集成测试使用 **真实 PostgreSQL 引擎 PGlite** 执行同一份迁移与 SQL，不是模拟成绩或内存对象替身。本地浏览器还验证了真实游戏得分 → API → PostgreSQL → 排行榜的完整链路。Neon/Vercel 生产验收仍需真实账号配置。
 
-详见 [测试报告](docs/TEST-REPORT.md)、[中文部署说明](docs/DEPLOY.md) 和 [原游戏改造记录](docs/UPSTREAM.md)。
+详见 [管理员使用说明](docs/管理员使用说明.md)、[测试报告](docs/TEST-REPORT.md)、[中文部署说明](docs/DEPLOY.md) 和 [原游戏改造记录](docs/UPSTREAM.md)。
 
 ## 目录
 
@@ -58,7 +58,7 @@ src/components/          首页、Cocos 容器、排行榜、管理员界面
 src/data/projects.ts     可扩展作品配置
 src/lib/                 数据查询、验证、Cookie、安全、上传日志
 public/cocos/            原游戏引擎、素材、打包脚本、小型桥接
-db/001_init.sql          数据表、索引、玩家统计视图
+db/*.sql                 增量迁移、数据表、编号、规则与分类统计视图
 scripts/                 Neon 初始化、资源完整性校验
 tests/                   SQL、API、安全、桥接、并发和重试测试
 ```

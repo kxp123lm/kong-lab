@@ -6,7 +6,7 @@
 
 1. 在 Vercel 用自己的账号导入 **kxp123lm/kong-lab**，创建全新项目 `kong-lab`。选择个人免费 Hobby 方案，框架 Next.js，Node.js **24.x**。已有 `vercel.json` 和锁文件，无需改构建命令。
 2. 在该**新项目**的 Storage 中连接 Neon 免费数据库，或到 Neon 创建免费 PostgreSQL 项目并复制连接字符串。只选择免费方案；出现付费或升级提示时停止，不用开通。优先选与 Vercel 亚洲部署区接近的可用数据库区。
-3. 设置下面的服务端环境变量，在 Neon SQL Editor 执行仓库中的 **`db/001_init.sql`**，然后在 Vercel 点击 Deploy / Redeploy。首选 `kong-lab.vercel.app`；若被占用，选 `kong-lab-kxp123lm` 等可用名字。
+3. 设置下面的服务端环境变量，在 Neon SQL Editor 执行仓库中的 **`db/001_init.sql`，再执行 `db/002_anonymous_exclusions.sql`**，然后在 Vercel 点击 Deploy / Redeploy。首选 `kong-lab.vercel.app`；若被占用，选 `kong-lab-kxp123lm` 等可用名字。
 
 若使用终端初始化，可将连接字符串只放 `.env.local` 并执行 `pnpm db:migrate`。不要提交 `.env.local` 或把连接字符串粘进公开 issue。
 
@@ -32,19 +32,19 @@ Vercel 环境变量不要添加 `NEXT_PUBLIC_` 前缀。环境变量修改后需
 
 ## 验收顺序
 
-1. 浏览 `/` 和 `/game` 介绍，Neon `sessions` 应无新增记录。客户端可能调用 `/api/player`，这不会插入玩家或游戏。
-2. 点击联网「开始游戏」，Neon 立即出现一条 0 分会话；未创建成功不会装作联网游戏已经开始。
-3. 操作真实游戏直到合成得分，等待四秒左右，界面「服务端已确认」与数据库一致。直接关页，再打开排行榜，已同步成绩仍在。
-4. `/leaderboard` 查看总榜、日榜、周榜及我的排名。不同浏览器视为不同匿名玩家，Cookie 不可跨域迁移。
-5. 用自己设置的密码登录 `/admin`，开启站长设备免统计，**再开始新局**。当前进行中的旧局不会被偷偷改类型；可用「当前浏览器旧游戏排除统计」明确排除。
+1. 浏览 `/` 时 `sessions` 无新增记录。进入 `/game` 会自动初始化匿名玩家并立即创建 0 分会话。`/api/player` 可以分配玩家编号，但不创建游戏。
+2. 点击首页「开始游戏」，Neon 立即出现一条 0 分会话；未创建成功不会装作联网游戏已经开始。
+3. 操作真实游戏直到合成得分，等待四秒左右，左下同步点的无障碍说明 / 提示中已保存分数与数据库一致。直接关页，再打开排行榜，已同步成绩仍在。
+4. 游戏内点奖杯查看总榜、日榜、周榜及我的排名。不同浏览器视为不同匿名玩家，Cookie 不可跨域迁移。
+5. 用自己设置的密码登录 `/admin`，开启站长设备免统计，**再开始新局**。新建规则默认仅影响创建时间之后的游戏。可在规则上点“包含旧记录”或从记录添加规则来追溯；停用 / 删除规则会恢复分类，重叠规则仍生效。
 6. 连续十局测试，普通概览与公共榜不变化。退出管理员后设备标记仍生效；在后台关闭免统计后，新开局恢复普通记录。
 7. 在真实手机 Safari / Chrome 验证拖动、松手、暂停、前后台切换和排行榜。最后只读访问旧站确认正常。
 
 可运行的检查 SQL：
 
 ```sql
-SELECT id, nickname, score, started_at, last_sync_at, finished, is_test
-FROM sessions ORDER BY started_at DESC LIMIT 20;
+SELECT id, nickname AS player_code, score, started_at, last_sync_at, finished, excluded AS is_test
+FROM classified_sessions ORDER BY started_at DESC LIMIT 20;
 
 SELECT * FROM player_profiles ORDER BY last_game_at DESC LIMIT 20;
 ```
@@ -74,6 +74,6 @@ DELETE FROM rate_limits WHERE expires_at < now() - interval '1 day';
 - **未知地区：** 本地没有 Vercel 地理头，生产也可能解析失败，这是正常情况。IP 地理位置不代表具体个人或精确位置。
 - **看见 Cocos 3400 sprite 警告：** 原包的 `icon3` 图集矩形超出原纹理边界，本次迁移保留原素材。已验证主游戏、碰撞和计分正常；不要通过更改物理和素材来掩盖警告。
 
-## 当前生产配置阻塞
+## 部署状态
 
-开发环境没有可用 Vercel/Neon 登录或数据库凭据；没有创建这两个服务的项目、没有配置生产密码、没有部署，也没有开通付费套餐。GitHub 新仓库创建与推送状态以最终交付说明为准。完成前述三步后，才会产生真实新站地址并可执行 Neon/Vercel 生产验收。
+具体生产部署状态以 `docs/TEST-REPORT.md` 和最终交付为准。Vercel Ready、Neon 迁移和实际生产写入必须逐项验收后才能声称上线。日常操作参见 [管理员使用说明](管理员使用说明.md)。

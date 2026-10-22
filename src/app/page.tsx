@@ -1,10 +1,2 @@
-import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, Gamepad2, FlaskConical, Trophy, Sparkles } from 'lucide-react';
-import { ProjectGrid } from '@/components/project-grid';
-import { MelonArt } from '@/components/melon-art';
-export default function Home() {
-  return <div className="container"><section className="hero"><div className="hero-copy"><span className="lab-status"><i/> 好奇心营业中 <span>OPEN FOR EXPERIMENTS</span></span><p className="hero-label">KONG LAB / 孔总实验室</p><h1>认真生活，<br/>也认真<span className="yellow handline">玩点花样。</span></h1><p className="hero-description">一些游戏、一些工具，以及奇奇怪怪的想法。</p><p className="hero-secondary">欢迎来到我的数字游乐场。让灵感落地，让好奇心有处可去。</p><div className="hero-actions"><Link className="button primary" href="/game"><Gamepad2 size={19}/>进入游戏<ArrowUpRight size={17}/></Link><Link className="button secondary" href="#projects">探索实验室<ArrowRight size={17}/></Link></div><div className="hero-footnote"><span>BUILT WITH CURIOSITY</span><span className="footnote-line"/><span>POWERED BY AI & COFFEE</span></div></div>
-    <Link href="/game" className="hero-feature" aria-label="进入合成大西瓜游戏"><div className="feature-top"><span><i/> NOW PLAYING</span><span>NO. 001 <ArrowUpRight size={16}/></span></div><MelonArt/><div className="feature-bottom"><div><span className="eyebrow">经典重启 · 原版玩法</span><h2>再来一局<span>合成大西瓜</span></h2></div><span className="round-arrow"><ArrowUpRight size={24}/></span></div><span className="feature-sticker">ONE MORE<br/><strong>TRY!</strong> ✦</span></Link>
-  </section><div className="lab-strip"><span><Gamepad2 size={18}/>小游戏，大快乐</span><span><FlaskConical size={18}/>想法随时发生</span><span><Sparkles size={18}/>AI × 好奇心</span><Link href="/leaderboard"><Trophy size={18}/>来榜上留个名<ArrowUpRight size={14}/></Link></div><ProjectGrid/>
-  <section className="about-lab"><div className="about-symbol">✳</div><div><span className="eyebrow">A LITTLE ABOUT THIS PLACE</span><h2>这里没有标准答案，<br/>只有「试试会怎样」。</h2></div><p>这是一个存放灵感的私人实验室。<br/>用 AI 做些小工具，给老游戏添点新意，<br/>把偶尔冒出的想法，一点点做出来。<br/><span>不必宏大，有趣就好。</span></p></section></div>;
-}
+import {GameHome} from '@/components/game-home';
+export default function Home(){return <GameHome/>;}

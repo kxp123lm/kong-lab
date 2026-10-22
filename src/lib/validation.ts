@@ -15,6 +15,7 @@ export const filterSchema = z.object({
   min: z.coerce.number().int().min(0).max(10000000).optional(),
   max: z.coerce.number().int().min(0).max(10000000).optional(),
   page: z.coerce.number().int().min(1).max(100000).default(1),
+  type: z.enum(['official','test','all']).default('official'),
 }).strict().refine(v => !v.from || !v.to || v.from <= v.to, '起始日期不能晚于结束日期')
   .refine(v => v.min === undefined || v.max === undefined || v.min <= v.max, '最低分不能高于最高分');
 export type Filters = Partial<z.infer<typeof filterSchema>>;

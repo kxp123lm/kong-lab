@@ -6,14 +6,23 @@ export interface StartInput {
   id: string; playerId: string; startKey: string; nickname: string;
   country: string | null; region: string | null; ipHash: string; isTest: boolean;
 }
-export async function createSession(db: Database, s: StartInput) {
-  const rows = await db.query(`WITH p AS (
-    INSERT INTO players(id) VALUES($1) ON CONFLICT(id) DO UPDATE SET id=excluded.id RETURNING id
-  ) INSERT INTO sessions(id,player_id,start_key,nickname,country,region,ip_hash,is_test)
-    SELECT $2,p.id,$3,$4,$5,$6,$7,$8 FROM p
-    ON CONFLICT(player_id,start_key) DO UPDATE SET start_key=excluded.start_key
-    RETURNING id,score,started_at,is_test`, [s.playerId,s.id,s.startKey,s.nickname,s.country,s.region,s.ipHash,s.isTest]);
+export function playerCode(number:string|number){return 'IP-'+String(number).padStart(3,'0');}
+export async function ensurePlayer(db:Database,id:string){
+  const rows=await db.query(`WITH inserted AS (
+    INSERT INTO players(id) SELECT $1::uuid WHERE NOT EXISTS(SELECT 1 FROM players WHERE id=$1::uuid)
+    ON CONFLICT(id) DO UPDATE SET id=excluded.id RETURNING id,number
+  ) SELECT id,number::text FROM inserted UNION ALL
+    SELECT id,number::text FROM players WHERE id=$1::uuid AND NOT EXISTS(SELECT 1 FROM inserted)`,[id]);
   return rows[0];
+}
+export async function createSession(db: Database, s: StartInput):Promise<Row> {
+  const p=await ensurePlayer(db,s.playerId);
+  const rows = await db.query(`INSERT INTO sessions(id,player_id,start_key,nickname,country,region,ip_hash,is_test)
+    VALUES($2,$1,$3,$4,$5,$6,$7,$8)
+    ON CONFLICT(player_id,start_key) DO UPDATE SET start_key=excluded.start_key
+    RETURNING id`, [s.playerId,s.id,s.startKey,playerCode(p.number),s.country,s.region,s.ipHash,s.isTest]);
+  const session=(await db.query('SELECT id,score,started_at,excluded AS is_test FROM classified_sessions WHERE id=$1',[rows[0].id]))[0];
+  return {...session,playerCode:playerCode(p.number)};
 }
 export async function syncSession(db: Database, s: { id: string; playerId: string; score: number; finished: boolean }) {
   if (!Number.isSafeInteger(s.score) || s.score < 0 || s.score > 10000000) throw new StoreError(400, '分数无效');
@@ -38,14 +47,14 @@ export function periodStart(period: Period, now = new Date()): string | null {
 }
 export async function leaderboard(db: Database, period: Period, playerId: string | null, now = new Date()) {
   const rows = await db.query(`WITH best AS (
-    SELECT DISTINCT ON(player_id) id,player_id,nickname,score,score_at,started_at FROM sessions
-    WHERE NOT is_test AND ($1::timestamptz IS NULL OR started_at >= $1::timestamptz)
+    SELECT DISTINCT ON(s.player_id) s.id,s.player_id,p.number,score,score_at,started_at FROM classified_sessions s JOIN players p ON p.id=s.player_id
+    WHERE NOT excluded AND ($1::timestamptz IS NULL OR started_at >= $1::timestamptz)
     ORDER BY player_id,score DESC,score_at ASC,id ASC
   ), ranked AS (
     SELECT *,row_number() OVER(ORDER BY score DESC,score_at ASC,id ASC)::int AS rank FROM best
   ) SELECT
     COALESCE((SELECT json_agg(t ORDER BY rank) FROM (
-      SELECT rank,nickname,score,score_at AS date FROM ranked ORDER BY rank LIMIT 100
+      SELECT rank,'IP-'||lpad(number::text,GREATEST(3,length(number::text)),'0') AS "playerCode",score,score_at AS date FROM ranked ORDER BY rank LIMIT 100
     ) t),'[]'::json) AS entries,
     (SELECT json_build_object('rank',rank,'score',score) FROM ranked WHERE player_id=$2::uuid) AS me,
     (SELECT count(*)::int FROM ranked) AS total`, [periodStart(period,now),playerId]);
@@ -57,25 +66,27 @@ export async function playerProfile(db: Database, playerId: string) {
 }
 export async function adminOverview(db: Database, f: Filters) {
   const stats = await db.query(`SELECT
-    (SELECT count(*)::int FROM sessions WHERE NOT is_test) AS games,
+    (SELECT count(*)::int FROM classified_sessions WHERE NOT excluded) AS games,
     (SELECT count(*)::int FROM player_profiles) AS players,
-    (SELECT count(*)::int FROM sessions WHERE NOT is_test AND started_at >= $1) AS today_games,
+    (SELECT count(*)::int FROM classified_sessions WHERE NOT excluded AND started_at >= $1) AS today_games,
     (SELECT count(*)::int FROM player_profiles WHERE first_game_at >= $1) AS today_players,
-    (SELECT COALESCE(max(score),0)::int FROM sessions WHERE NOT is_test) AS best`, [periodStart('today')]);
+    (SELECT COALESCE(max(score),0)::int FROM classified_sessions WHERE NOT excluded) AS best`, [periodStart('today')]);
   const params: unknown[] = [f.from ? `${f.from}T00:00:00+08:00` : null, f.to ? `${f.to}T00:00:00+08:00` : null, f.region || null, f.min ?? null, f.max ?? null];
   const where = `WHERE ($1::timestamptz IS NULL OR started_at >= $1::timestamptz)
     AND ($2::timestamptz IS NULL OR started_at < $2::timestamptz + interval '1 day')
     AND ($3::text IS NULL OR country ILIKE '%' || $3 || '%' OR region ILIKE '%' || $3 || '%')
-    AND ($4::int IS NULL OR score >= $4::int) AND ($5::int IS NULL OR score <= $5::int)`;
-  const records = await db.query(`SELECT id,started_at,player_id,nickname,country,region,score,finished,last_sync_at,is_test,
-    count(*) OVER()::int AS total FROM sessions ${where} ORDER BY started_at DESC,id DESC LIMIT 50 OFFSET $6`, [...params,((f.page || 1)-1)*50]);
+    AND ($4::int IS NULL OR score >= $4::int) AND ($5::int IS NULL OR score <= $5::int)
+    AND ($7::text='all' OR excluded=($7::text='test'))`;
+  const records = await db.query(`SELECT s.id,started_at,player_id,country,region,score,finished,last_sync_at,excluded AS is_test,
+    'IP-'||lpad(p.number::text,GREATEST(3,length(p.number::text)),'0') AS "playerCode",
+    count(*) OVER()::int AS total FROM classified_sessions s JOIN players p ON p.id=s.player_id ${where} ORDER BY started_at DESC,s.id DESC LIMIT 50 OFFSET $6`, [...params,((f.page || 1)-1)*50,f.type||'official']);
   return { stats: stats[0], records, total: records[0]?.total || 0 };
 }
 export async function markBrowserHistory(db: Database, playerId: string) {
   return (await db.query('UPDATE sessions SET is_test=true WHERE player_id=$1 AND NOT is_test RETURNING id',[playerId])).length;
 }
 export async function clearBrowserTests(db: Database, playerId: string) {
-  return (await db.query('DELETE FROM sessions WHERE player_id=$1 AND is_test RETURNING id',[playerId])).length;
+  return (await db.query('DELETE FROM sessions WHERE id IN(SELECT id FROM classified_sessions WHERE player_id=$1 AND excluded) RETURNING id',[playerId])).length;
 }
 export async function consumeRate(db: Database, key: string, limit: number, seconds: number, now = Date.now()) {
   const time = new Date(now).toISOString();

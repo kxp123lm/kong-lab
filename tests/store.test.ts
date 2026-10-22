@@ -12,7 +12,7 @@ const other = randomUUID();
 function input(playerId = player, isTest = false) {
   return { id: randomUUID(), playerId, startKey: randomUUID(), nickname: '测试玩家', country: 'CN', region: 'SD', ipHash: 'a'.repeat(64), isTest };
 }
-before(async () => { await pg.exec(await readFile(new URL('../db/001_init.sql', import.meta.url), 'utf8')); });
+before(async () => { for(const file of ['001_init.sql','002_anonymous_exclusions.sql'])await pg.exec(await readFile(new URL('../db/'+file, import.meta.url), 'utf8')); });
 beforeEach(async () => { await pg.exec('TRUNCATE sessions, players, rate_limits CASCADE'); });
 after(async () => { await pg.close(); });
 
@@ -52,7 +52,7 @@ test('each player occupies one ranking row', async () => {
   assert.equal(b.entries.length, 2);
   assert.equal(b.me.score, 50);
   assert.equal(b.me.rank, 2);
-  assert.equal(b.entries[0].nickname, '测试玩家');
+  assert.match(b.entries[0].playerCode,/^IP-\d+$/);
   assert.equal('ip_hash' in b.entries[0], false);
   assert.equal('player_id' in b.entries[0], false);
 });
