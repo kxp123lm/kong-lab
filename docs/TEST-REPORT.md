@@ -21,7 +21,9 @@
 
 - Vercel Hobby 新项目 kong-lab 已创建，连接新仓库。
 - Neon Free、Singapore、无需信用卡，数据库 kong-lab-db 已创建。
-- 正在连接项目、配置服务端环境变量、执行两份迁移并发布。
+- 数据库已连接 Vercel，DATABASE_URL 由官方集成配置为 Secret。001、002 两份迁移已在真实 Neon 成功执行；只读检查 games=0、players=0、rules=0、classified_view=true，未写入模拟成绩。
+- 872670b 首次自动部署成功；a7a538e 第二次推送也自动部署成功，正式 /credits 已验证出现“新站游戏名为《瓜瓜物语》”的可见更新。
+- 正式页面地址 https://kong-lab.vercel.app 可返回 200。三个应用服务端变量需要用户亲自保存；后端真实分数写入与管理员生产验收待此步骤完成后继续。
 - 在生产 API、Neon 实际写入、密码登录和二次推送部署验证完成前，不声称生产验收通过。
 
 ## 边界

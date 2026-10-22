@@ -3,7 +3,7 @@
 《瓜瓜物语》为主体，KONG LAB 作品页为辅助。保留原 Cocos 游戏、人物素材和合成物理，接入真实联网成绩、匿名排行榜及可撤销的测试设备 / IP 排除名单。
 
 **源码仓库：** https://github.com/kxp123lm/kong-lab  
-**生产地址：** https://kong-lab.vercel.app （已部署页面；数据库迁移与生产验收进行中，详见测试报告）。
+**生产地址：** https://kong-lab.vercel.app （页面与 Neon 迁移已完成；应用密钥配置及生产数据验收进行中，详见测试报告）。
 
 原仓库 `kxp123lm/xiaomin` 与原站 `xiaomin.vercel.app` 从未被本项目修改。
 
